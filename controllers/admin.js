@@ -70,6 +70,6 @@ exports.deleteProductById = (req, res, next) => {
       return res.redirect('/');
     
       Product.delete(prodId);
-      res.redirect('/');
+      // res.redirect('/');
   })
 }
