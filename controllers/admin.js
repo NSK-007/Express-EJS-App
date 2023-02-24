@@ -17,8 +17,9 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
   const product = new Product(null, title, imageUrl, description, price);
-  product.save();
-  res.redirect('/');
+  product.save()
+    .then(() =>  res.redirect('/'))
+    .catch(err => console.log(err));
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -27,16 +28,18 @@ exports.getEditProduct = (req, res, next) => {
   if(!editMode)
     return res.redirect('/');
   const prodId = req.params.productId;
-  Product.findById(prodId, product => {
+  Product.findById(prodId).then(([product]) => {
       if(!product)
         return res.redirect('/');
+      console.log(product[0]);
       res.render('admin/edit-product', {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing : editMode,
-      product : product
+      product : product[0],
     });
-  }); 
+  }).
+  catch(err => console.log(err));
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -48,28 +51,36 @@ exports.postEditProduct = (req, res, next) => {
   const updatedDescription = req.body.description;
 
   const updateProduct = new Product(prodId, updatedTitle, updatedImageUrl, updatedDescription, updatedPrice);
-  updateProduct.save();
-  res.redirect('/admin/products');
+  updateProduct.save()
+    .then(() => {
+      res.redirect('/admin/products');
+    })
+    .catch(() => {
+      console.log(err);
+    })
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+  console.log('fetch')
+  Product.fetchAll().then(products => {
+    // console.log(products);
     res.render('admin/products', {
-      prods: products,
+      prods: products[0],
       pageTitle: 'Admin Products',
       path: '/admin/products'
     });
-  });
+  })
+  .catch(err => console.log(err));
 };
 
 exports.deleteProductById = (req, res, next) => {
   const prodId = req.params.productId;
   console.log("Delete Controller:"+prodId);
-  Product.findById(prodId, product => {
-    if(!product)
-      return res.redirect('/');
-    
+  Product.findById(prodId)
+    .then(([product]) => {
+      if(!product[0])
+        return res.redirect('/');
       Product.delete(prodId);
-      // res.redirect('/');
-  })
+        res.redirect('/');
+    })
 }
